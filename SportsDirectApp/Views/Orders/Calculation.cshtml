@@ -1,0 +1,18 @@
+﻿@model int
+
+@{
+    ViewData["Title"] = "Calculation";
+}
+
+<span id="orderId" class="invisible">@Model</span>
+
+<div class="loader" id="calcLoader"></div>
+<div id="calcContent"></div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+@section Scripts
+{
+    <script src="@Url.Content("~/js/Calculation.js")"></script>
+}

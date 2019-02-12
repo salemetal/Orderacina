@@ -1,0 +1,156 @@
+﻿@using SportsDirectApp.Common
+@model SportsDirectApp.Models.Order
+
+@{
+    ViewData["Title"] = "Items";
+}
+
+<h2>Order: @Model.Name<span class="pull-right">Kreator: @Model.CreatedBy -  Id: <span id="orderId">@Model.Id</span><span> - @Model.Currency</span></span></h2>
+
+
+@if (Model.IsOpen)
+{
+    <div class="row">
+        <div class="form-group col-xs-3">
+            <label>Url</label>
+            <input id="txtUrl" type="text" class="form-control" />
+        </div>
+        <div class="form-group col-xs-2">
+            <label>Price</label>
+            <input id="txtPrice" type="text" class="form-control" />
+        </div>
+        <div class="form-group col-xs-1">
+            <label>Amount</label>
+            <select id="selectAmount" class="form-control">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+        </div>
+        <div class="form-group col-xs-4">
+            <label>Description</label>
+            <input id="txtDescription" type="text" class="form-control" />
+        </div>
+        <div class="form-group col-xs-1">
+            <label>Size</label>
+            <input id="txtSize" type="text" class="form-control" />
+        </div>
+        <div class="form-group col-xs-1">
+            <label class="invisible"> add</label>
+            <button id="btnAddItem" type="button" class="btn">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            </button>
+
+        </div>
+    </div>
+}
+
+else
+{
+    <h2 id="orderClosed">Order is Closed!</h2>
+}
+
+<table id="itemsGrid"></table>
+
+<div class="row">
+    <div class="form-group col-xs-2">
+        <label>Shipping</label>
+        <input id="txtShipping" type="text" class="form-control" value="@Model.Shipping" disabled/>
+    </div>
+    <div class="form-group col-xs-2">
+        <label>Currency</label>
+        <input id="txtCurrency" type="text" class="form-control" value="@Model.Currency" disabled/>
+    </div>
+    <div class="form-group col-xs-1">
+        <label class="invisible"> calc</label>
+        <button id="btnCalculation" type="button" class="btn">
+            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+        </button>
+    </div>
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+<!-- The Edit Modal -->
+<div id="editModal" class="modal">
+
+    <!-- Modal content -->
+    <div id="modalContent" class="modal-content">
+        <span class="invisible" id="editId"></span>
+        <span id="closeEditModal" class="close">&times;</span>
+
+        <div id="editModal" class="row model">
+            <div class="form-group col-xs-3">
+                <label>Url</label>
+                <input id="txtUrlEdit" type="text" class="form-control" />
+            </div>
+            <div class="form-group col-xs-2">
+                <label>Price</label>
+                <input id="txtPriceEdit" type="text" class="form-control" />
+            </div>
+            <div class="form-group col-xs-1">
+                <label>Amount</label>
+                <select id="selectAmountEdit" class="form-control">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                </select>
+            </div>
+            <div class="form-group col-xs-4">
+                <label>Description</label>
+                <input id="txtDescriptionEdit" type="text" class="form-control" />
+            </div>
+            <div class="form-group col-xs-1">
+                <label>Size</label>
+                <input id="txtSizeEdit" type="text" class="form-control" />
+            </div>
+
+            <div style="margin-top:25px">
+                <button id="btnEditItem" type="button" class="btn">
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                </button>
+                <span class="invisible" id="editId"></span>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- The Calc Modal -->
+<div id="calcModal" class="modal">
+    <div class="loader" id="calcLoader"></div>
+
+    <!-- Modal content -->
+    <div id="modalContentCalc" class="modal-content">
+
+        <span id="closeCalcModal" class="close">&times;</span>
+        <div id="modalContentCalcData"></div>
+    </div>
+
+</div>
+
+
+<div class="invisible" id="usernameLoggedIn">@User.Identity.Name</div>
+<div class="invisible" id="usernameOrderCreatedBy">@Model.CreatedBy</div>
+
+@section Scripts
+    {
+    <script src="@Url.Content("~/js/Items.js")"></script>
+}

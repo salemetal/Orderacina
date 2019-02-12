@@ -1,0 +1,85 @@
+﻿@model IEnumerable<SportsDirectApp.Models.Order>
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<h2>Orders</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Shop.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsOpen)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DateCreated)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Shop.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsOpen)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedBy)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateCreated)
+            </td>
+            <td>
+                @if (item.CreatedBy == User.Identity.Name || User.IsInRole("admin"))
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <span> | </span>
+                }
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> <span> | </span>
+                <a asp-action="Items" asp-route-id="@item.Id">Items</a>   <span> | </span>
+
+                @if (User.IsInRole("admin"))
+                {
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <span> | </span>
+                }
+
+                <a asp-action="Calculation" asp-route-id="@item.Id"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span></a>
+            </td>
+        </tr>
+        }
+
+    </tbody>
+</table>
