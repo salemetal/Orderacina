@@ -45,6 +45,7 @@ namespace SportsDirectApp
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.Configure<Common.Config>(Configuration.GetSection("Config"));
+            services.Configure<Common.Smtp>(Configuration.GetSection("Smtp"));
 
             services.AddMvc(config =>
             {

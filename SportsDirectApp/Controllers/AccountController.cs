@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -10,6 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Newtonsoft.Json.Linq;
+using SportsDirectApp.Common;
 using SportsDirectApp.Models;
 using SportsDirectApp.Models.AccountViewModels;
 using SportsDirectApp.Services;
@@ -24,17 +29,20 @@ namespace SportsDirectApp.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
+        private readonly Smtp _smtp;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IOptions<Common.Smtp> smtp)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _smtp = smtp.Value;
         }
 
         [TempData]
@@ -232,7 +240,21 @@ namespace SportsDirectApp.Controllers
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     _logger.LogInformation("User created a new account with password.");
+
+
+                    var fromAddress = new MailAddress(_smtp.Address, _smtp.Username);
+                    var toAddress = new MailAddress(model.Email, "");
+                    var body = "Go to this link to comfirm your account:" + Environment.NewLine + callbackUrl;
+
+                    var smtp = Utility.GetMailClient(_smtp);
+                    var message = new MailMessage(fromAddress, toAddress)
+                    {
+                        Subject = "Comfirm Your Account",
+                        Body = body
+                    };
+                    await smtp.SendMailAsync(message);
                     return RedirectToLocal(returnUrl);
+
                 }
                 AddErrors(result);
             }
@@ -371,11 +393,18 @@ namespace SportsDirectApp.Controllers
                 // visit https://go.microsoft.com/fwlink/?LinkID=532713
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackUrl = Url.ResetPasswordCallbackLink(user.Id, code, Request.Scheme);
-                await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+                var fromAddress = new MailAddress(_smtp.Address, _smtp.Username);
+                var toAddress = new MailAddress(model.Email, "");
+                var body = "Go to this link to reset your password:" + Environment.NewLine + callbackUrl;
+                var smtp = Utility.GetMailClient(_smtp);
+                var message = new MailMessage(fromAddress, toAddress)
+                {
+                    Subject = "Reset Password",
+                    Body = body
+                };
+                await smtp.SendMailAsync(message);
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
             }
-
             // If we got this far, something failed, redisplay form
             return View(model);
         }
