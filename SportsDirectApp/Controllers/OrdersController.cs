@@ -135,12 +135,11 @@ namespace SportsDirectApp.Controllers
             order.SetCreateProperties(HttpContext.User.Identity.Name);
             ModelState.Clear();
             TryValidateModel(order);
-
             if (ModelState.IsValid)
             {
                 _context.Add(order);
                 await _context.SaveChangesAsync();
-
+                await SendNewOrderMail(order, order.Shop);
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
