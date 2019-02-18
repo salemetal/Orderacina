@@ -139,7 +139,6 @@ namespace SportsDirectApp.Controllers
             {
                 _context.Add(order);
                 await _context.SaveChangesAsync();
-                await SendNewOrderMail(order, order.Shop);
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
