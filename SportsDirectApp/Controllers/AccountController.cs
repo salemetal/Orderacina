@@ -36,7 +36,7 @@ namespace SportsDirectApp.Controllers
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IOptions<Common.Smtp> smtp)
+            IOptions<Smtp> smtp)
         {
             _userManager = userManager;
             _signInManager = signInManager;

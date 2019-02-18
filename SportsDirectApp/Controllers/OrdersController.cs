@@ -5,11 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SportsDirectApp.Common;
 using SportsDirectApp.Data;
 using SportsDirectApp.Models;
@@ -20,10 +23,15 @@ namespace SportsDirectApp.Controllers
     public class OrdersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly Smtp _smtp;
+        private readonly Common.Config _config;
 
-        public OrdersController(ApplicationDbContext context)
+
+        public OrdersController(ApplicationDbContext context, IOptions<Smtp> smtp, IOptions<Common.Config> config)
         {
             _context = context;
+            _smtp = smtp.Value;
+            _config = config.Value;
         }
 
         // GET: Orders
@@ -91,7 +99,6 @@ namespace SportsDirectApp.Controllers
         public async Task<IActionResult> Create([Bind("Id,Name,Description,IsOpen,ShopId, Currency, Shipping")] Order order)
         {
             order.SetCreateProperties(HttpContext.User.Identity.Name);
-
             ModelState.Clear();
             TryValidateModel(order);
 
@@ -99,10 +106,19 @@ namespace SportsDirectApp.Controllers
             {
                 _context.Add(order);
                 await _context.SaveChangesAsync();
+
+                Shop shop = _context.Shop.FirstOrDefault(s => s.Id == order.ShopId);
+
+                if (shop != null && _config.NewOrderNodificationEnabled)
+                {
+                    await SendNewOrderMail(order, shop);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
         }
+
 
         // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -245,6 +261,31 @@ namespace SportsDirectApp.Controllers
             };
 
             return items;
+        }
+
+        private async Task SendNewOrderMail(Order order, Shop shop)
+        {
+            IEnumerable<string> emails = _context.Users.ToList().Where(u => u.UserName != "admin").Select(u => u.Email);
+            StringBuilder body = new StringBuilder();
+            body.Append("<b>New order has been created!</b>" + "</br>" + "</br>");
+            body.Append("Shop: " + "<b>" + shop.Name + "</b>" + "</br>");
+            body.Append("Order name: " + "<b>" + order.Name + "</b>" + "</br>");
+            body.Append("Created by: " + "<b>" + order.CreatedBy + "</b>" + "</br> </br>");
+            body.Append("<b>Visit orderačina here:</b>" + "</br>" + "<a href=" + _config.NewOrderLink + order.Id + " target=\"_blank\">" + _config.NewOrderLink + order.Id + "</a>");
+
+            var smtp = Utility.GetMailClient(_smtp);
+            var message = new MailMessage()
+            {
+                Subject = "New Orderačina!",
+                Body = body.ToString(),
+                From = new MailAddress(_smtp.Address, _smtp.Username),
+            };
+            foreach (var item in emails)
+            {
+                message.To.Add(item);
+            }
+            message.IsBodyHtml = true;
+            await smtp.SendMailAsync(message);
         }
         #endregion
     }
