@@ -139,6 +139,13 @@ namespace SportsDirectApp.Controllers
             {
                 _context.Add(order);
                 await _context.SaveChangesAsync();
+                Shop shop = _context.Shop.FirstOrDefault(s => s.Id == order.ShopId);
+
+                if (shop != null && _config.NewOrderNodificationEnabled)
+                {
+                    await SendNewOrderMail(order, shop);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
