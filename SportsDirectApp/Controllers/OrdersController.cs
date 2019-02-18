@@ -42,6 +42,40 @@ namespace SportsDirectApp.Controllers
                 .ToListAsync());
         }
 
+        //Toggle order status
+        public async Task<IActionResult> ChangeStatus(int id)
+        {
+            var order = await _context.Order.SingleOrDefaultAsync(o => o.Id == id);
+            order.IsOpen = !order.IsOpen;
+
+            order.SetEditProperties(HttpContext.User.Identity.Name);
+
+            ModelState.Clear();
+            TryValidateModel(order);
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(order);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!OrderExists(order.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(order);
+        }
+
         // GET: Shops/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -106,13 +140,6 @@ namespace SportsDirectApp.Controllers
             {
                 _context.Add(order);
                 await _context.SaveChangesAsync();
-
-                Shop shop = _context.Shop.FirstOrDefault(s => s.Id == order.ShopId);
-
-                if (shop != null && _config.NewOrderNodificationEnabled)
-                {
-                    await SendNewOrderMail(order, shop);
-                }
 
                 return RedirectToAction(nameof(Index));
             }

@@ -8,6 +8,8 @@ using SportsDirectApp.Common.Binders;
 using SportsDirectApp.Data;
 using SportsDirectApp.Models;
 using SportsDirectApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System;
 
 namespace SportsDirectApp
 {
@@ -23,6 +25,14 @@ namespace SportsDirectApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
+            services.AddAuthentication().Services.ConfigureApplicationCookie(options =>
+                {
+                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = TimeSpan.FromDays(365);
+                });
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -37,7 +47,6 @@ namespace SportsDirectApp
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = true;
-
                 options.User.RequireUniqueEmail = true;
             });
 
@@ -56,6 +65,7 @@ namespace SportsDirectApp
             {
                 options.ForwardClientCertificate = false;
             });
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => { options.Cookie.Expiration = TimeSpan.FromDays(1); });
 
             //services.AddMvc();
         }

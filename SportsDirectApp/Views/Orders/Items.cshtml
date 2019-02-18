@@ -65,11 +65,11 @@ else
 <div class="row">
     <div class="form-group col-xs-2">
         <label>Shipping</label>
-        <input id="txtShipping" type="text" class="form-control" value="@Model.Shipping" disabled/>
+        <input id="txtShipping" type="text" class="form-control" value="@Model.Shipping" disabled />
     </div>
     <div class="form-group col-xs-2">
         <label>Currency</label>
-        <input id="txtCurrency" type="text" class="form-control" value="@Model.Currency" disabled/>
+        <input id="txtCurrency" type="text" class="form-control" value="@Model.Currency" disabled />
     </div>
     <div class="form-group col-xs-1">
         <label class="invisible"> calc</label>
@@ -77,6 +77,21 @@ else
             <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
         </button>
     </div>
+    @if (@Model.CreatedBy == User.Identity.Name || User.IsInRole("admin"))
+    {
+        if (Model.IsOpen)
+        {
+            <div class="form-group col-xs-1">
+                <a asp-action="ChangeStatus" asp-route-id="@Model.Id" style="margin-top:25px" class="btn btn-danger">Close order</a>
+            </div>
+        }
+        else
+        {
+            <div class="form-group col-xs-1">
+                <a asp-action="ChangeStatus" asp-route-id="@Model.Id" style="margin-top:25px" class="btn btn-success">Open order</a>
+            </div>
+        }
+    }
 </div>
 <div>
     <a asp-action="Index">Back to List</a>
