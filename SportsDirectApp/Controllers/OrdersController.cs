@@ -297,7 +297,7 @@ namespace SportsDirectApp.Controllers
 
         private async Task SendNewOrderMail(Order order, Shop shop)
         {
-            IEnumerable<string> emails = _context.Users.ToList().Where(u => u.UserName != "admin").Select(u => u.Email);
+            IEnumerable<string> emails = _context.Users.ToList().Where(u => !(u.UserName.ToLower()).StartsWith("admin")).Select(u => u.Email);
             StringBuilder body = new StringBuilder();
             body.Append("<b>New order has been created!</b>" + "</br>" + "</br>");
             body.Append("Shop: " + "<b>" + shop.Name + "</b>" + "</br>");
