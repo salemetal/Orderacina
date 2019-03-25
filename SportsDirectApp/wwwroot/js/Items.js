@@ -282,7 +282,7 @@ function deleteFormatter(cellvalue, options, rowObject) {
     }
     else {
 
-        if (usernameLoggedIn === rowObject.createdBy || usernameOrderCreatedBy === usernameLoggedIn || usernameLoggedIn === 'admin@admin.hr') {
+        if (usernameLoggedIn === rowObject.createdBy || usernameOrderCreatedBy === usernameLoggedIn || usernameLoggedIn === 'admin@orderacina.hr') {
             return '<button type="button" class="deleteBtn btn btn-warning btn-sm"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button>';
         }
         return '';
@@ -296,7 +296,7 @@ function editFormatter(cellvalue, options, rowObject) {
     }
     else {
 
-        if (usernameLoggedIn === rowObject.createdBy || usernameOrderCreatedBy === usernameLoggedIn || usernameLoggedIn === 'admin@admin.hr') {
+        if (usernameLoggedIn === rowObject.createdBy || usernameOrderCreatedBy === usernameLoggedIn || usernameLoggedIn === 'admin@orderacina.hr') {
             return '<button type="button" class="editBtn btn btn-info btn-sm"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span></button>';
         }
         return '';
