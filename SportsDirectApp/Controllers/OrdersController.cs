@@ -45,7 +45,9 @@ namespace SportsDirectApp.Controllers
         //Toggle order status
         public async Task<IActionResult> ChangeStatus(int id)
         {
-            var order = await _context.Order.SingleOrDefaultAsync(o => o.Id == id);
+            var order = await _context.Order
+                .Include(o => o.OrderItems)
+                .SingleOrDefaultAsync(o => o.Id == id);
             order.IsOpen = !order.IsOpen;
 
             order.SetEditProperties(HttpContext.User.Identity.Name);
@@ -74,6 +76,46 @@ namespace SportsDirectApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
+        }
+
+        public async Task<IActionResult> SendCalculationMail(int id)
+        {
+            var order = await _context.Order
+                .Include(o => o.OrderItems)
+                .SingleOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var usersToSendMail = order.OrderItems.Select(i => i.CreatedBy).Distinct().ToList();
+
+                if (usersToSendMail.Any())
+                {
+                    var body = order.GenerateBillCalculationHtml(_config.HNBApiTecaj);
+
+                    var smtp = Utility.GetMailClient(_smtp);
+                    var message = new MailMessage()
+                    {
+                        Subject = $"Dužnici za orderačinu - {order.Name} - !",
+                        SubjectEncoding = System.Text.Encoding.UTF8,
+                        Body = body.ToString(),
+                        BodyEncoding = System.Text.Encoding.UTF8,
+                        IsBodyHtml = true,
+                        From = new MailAddress(_smtp.Address, _smtp.Username),
+                    };
+                    foreach (var item in usersToSendMail)
+                    {
+                        message.To.Add(item);
+                    }
+                    message.IsBodyHtml = true;
+                    await smtp.SendMailAsync(message);
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Shops/Details/5
@@ -141,7 +183,7 @@ namespace SportsDirectApp.Controllers
                 await _context.SaveChangesAsync();
                 Shop shop = _context.Shop.FirstOrDefault(s => s.Id == order.ShopId);
 
-                if (shop != null && _config.NewOrderNodificationEnabled)
+                if (shop != null && _config.NewOrderNotificationEnabled)
                 {
                     await SendNewOrderMail(order, shop);
                 }

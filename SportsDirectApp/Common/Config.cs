@@ -8,7 +8,7 @@ namespace SportsDirectApp.Common
     public class Config
     {
         public string HNBApiTecaj { get; set; }
-        public bool NewOrderNodificationEnabled { get; set; }
+        public bool NewOrderNotificationEnabled { get; set; }
         public string NewOrderLink { get; set; }
     }
 

@@ -1,6 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
 
 namespace SportsDirectApp.Models
 {
@@ -28,5 +29,48 @@ namespace SportsDirectApp.Models
         [Required]
         public string Currency { get; set; }
 
+        private decimal? _total;
+        public decimal Total
+        {
+            get
+            {
+                if (_total == null)
+                {
+                    _total = OrderItems.Sum(i => i.Amount * i.Price);
+                }
+
+                return (decimal)_total;
+            }
+        }
+
+        #region Public Methods
+        public string GenerateCompleteCalculationHtml(string HNBApiTecajType)
+        {
+            string html = string.Empty;
+
+            var tecaj = Common.Utility.GetTecaj(Currency, HNBApiTecajType);
+
+            var calcCollection = new UserCalculationCollection(tecaj, this);
+            calcCollection.Init();
+
+            html = calcCollection.CreateHTMLContent();
+
+            return html;
+        }
+
+        public string GenerateBillCalculationHtml(string HNBApiTecajType)
+        {
+            var tecaj = Common.Utility.GetTecaj(Currency, HNBApiTecajType);
+
+            var calcCollection = new UserCalculationCollection(tecaj, this);
+            calcCollection.Init();
+
+            return calcCollection.CreateBillTable();
+        }
+        #endregion
+
+        #region Private Methods
+
+        #endregion
     }
 }

@@ -110,18 +110,15 @@ namespace SportsDirectApp.Controllers.API
 
                 if (order?.OrderItems != null && order.OrderItems.Any())
                 {
-                        var tecaj = GetTecaj(order.Currency);
+                    try
+                    {
+                        content = order.GenerateCompleteCalculationHtml(_config.HNBApiTecaj);
 
-                        var calcCollection = GetCalculationCollection(order, tecaj);
-
-                        try
-                        {
-                            content = calcCollection.CreateHTMLContent();
-                        }
-                        catch (Exception ex)
-                        {
-                            content = ex.Message;
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        content = ex.Message;
+                    }
                 }
                 else
                 {
@@ -249,76 +246,5 @@ namespace SportsDirectApp.Controllers.API
         {
             return _context.OrderItem.Any(e => e.Id == id);
         }
-
-        #region PrivateMethods
-        private UserCalculationCollection GetCalculationCollection(Order order, decimal tecaj)
-        {
-            var itemsGrouped = order.OrderItems.GroupBy(i => i.CreatedBy).ToList();
-
-            var orderTotal = itemsGrouped.Sum(g => g.Sum(i => i.Amount * i.Price));
-            var collection = new UserCalculationCollection(orderTotal, tecaj, order.Currency, order.Shipping);
-
-            foreach (var userGroup in itemsGrouped)
-            {
-                var totalForUser = userGroup.Sum(i => i.Price * i.Amount);
-                var shippingParticipationPercentage = totalForUser / orderTotal * 100;
-                var userCalc = new UserCalculation(userGroup.Key, totalForUser, shippingParticipationPercentage);
-
-                foreach (var item in userGroup)
-                {
-                    userCalc.OrderItems.Add(item);
-                }
-
-                collection.UserCalculations.Add(userCalc);
-            }
-
-            return collection;
-        }
-        
-        private decimal GetTecaj(string currencyName)
-        {
-            decimal tecaj = 1m;
-            if (currencyName == Constants.Currency.HRK) return tecaj;
-
-            var apiUrl = $"http://api.hnb.hr/tecajn/v1?valuta={currencyName}";
-            var request = (HttpWebRequest)WebRequest.Create(apiUrl);
-            var responseJson = "";
-
-            using (var response = (HttpWebResponse)request.GetResponse())
-            {
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    using (var stream = response.GetResponseStream())
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            responseJson = reader.ReadToEnd();
-                        }
-                    }
-                }
-                else
-                {
-                    throw new Exception("Get tecaj request failed!");
-                }
-            }
-
-            if (!string.IsNullOrEmpty(responseJson))
-            {
-                responseJson = responseJson.Replace("[", "").Replace("]", "");
-
-                try
-                {
-                    JObject jObject = JObject.Parse(responseJson);
-                    tecaj = decimal.Parse((string)jObject.SelectToken($"['{_config.HNBApiTecaj}']"));
-                }
-                catch (Exception)
-                {
-                    throw new Exception("Get tecaj request failed!");
-                }
-            }
-
-            return tecaj;
-        }
-        #endregion
     }
 }
