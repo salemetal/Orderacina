@@ -36,7 +36,14 @@ namespace SportsDirectApp.Models
             {
                 if (_total == null)
                 {
-                    _total = OrderItems.Sum(i => i.Amount * i.Price);
+                    if(OrderItems == null || !OrderItems.Any())
+                    {
+                        _total = 0;
+                    }
+                    else
+                    {
+                        _total = OrderItems.Sum(i => i.Amount * i.Price);
+                    }
                 }
 
                 return (decimal)_total;

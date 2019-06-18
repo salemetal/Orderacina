@@ -53,7 +53,14 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.IsOpen)
+                @if (item.IsOpen)
+                {
+                    <span class="glyphicon glyphicon-ok"></span>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-remove"></span>
+                }
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedBy)
